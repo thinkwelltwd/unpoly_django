@@ -1,0 +1,8 @@
+*~
+*.orig
+*.swp
+*.pyc
+.mypy_cache
+secret.txt
+static/*
+.idea/*
