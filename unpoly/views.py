@@ -51,6 +51,10 @@ class UnpolyViewMixin:
             self._up = Unpoly(meta=self.request.META, query_params=self.request.GET)
         return self._up
 
+    def up_mode(self) -> str:
+        """Override on subclasses to handle fail modes."""
+        return self.up.mode()
+
     def get_template_names(self) -> List[str]:
         """Return Unpoly template name for the specified layer."""
         if self.up.is_unpoly():
@@ -58,7 +62,7 @@ class UnpolyViewMixin:
             if requested_name:
                 return [requested_name]
 
-            up_mode = self.up.mode()
+            up_mode = self.up_mode()
             if up_mode == 'root':
                 return super().get_template_names()
 
@@ -167,6 +171,19 @@ class UnpolyFormViewMixin(UnpolyViewMixin):
             return response
 
         return HttpResponseRedirect(self.get_success_url())
+
+    def up_mode(self) -> str:
+        if getattr(self, 'invalid_form_submission', False):
+            return self.up.fail_mode()
+        return super().up_mode()
+
+    def form_invalid(self, form):
+        """
+        Set view attribute when form submission fails, to know
+        how to choose the correct response template.
+        """
+        self.invalid_form_submission = True
+        return super().form_invalid(form)
 
     def send_accept_layer(self, form, select_field_id) -> HttpResponse:
         """

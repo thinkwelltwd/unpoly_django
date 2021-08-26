@@ -2,6 +2,7 @@
 
 import os
 from setuptools import setup
+from unpoly import get_version
 
 HERE = os.path.abspath(os.path.dirname(__file__))
 
@@ -26,7 +27,7 @@ KEYWORDS = (
 
 setup(
     name="unpoly_django",
-    version="0.1.0",
+    version=get_version(),
     author="Dave Burkholder",
     author_email="dave@thinkwelldesigns.com",
     description=SHORT_DESCRIPTION[0:200],

@@ -32,6 +32,11 @@ class Unpoly:
         """
         return self.meta.get('HTTP_X_UP_MODE', 'root')
 
+    def fail_mode(self) -> str:
+        """Return layer mode requested by Unpoly when a request failure occurs.
+        """
+        return self.meta.get('HTTP_X_UP_FAIL_MODE', 'root')
+
     def multi_layer(self) -> bool:
         """Check query params for key indicating that this layer is multiple overlay.
 
