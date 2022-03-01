@@ -14,6 +14,7 @@ class UnpolyCrispyFormMixin:
         """
         self.form_action: str = kwargs.pop('form_action', '')
         self.multi_layer: bool = kwargs.pop('multi_layer', False)
+        self.up_layer: str = kwargs.pop('up_layer', 'parent current')
         self.up_target: str = kwargs.pop('up_target', '')
         self.up_fail_target: str = kwargs.pop('up_fail_target', '')
         self.up_validate: str = kwargs.pop('up_validate', '')
@@ -34,7 +35,7 @@ class UnpolyCrispyFormMixin:
 
         unpoly_attrs = {
             'up-target': self.up_target,
-            'up-layer': 'root current',
+            'up-layer': self.up_layer,
             'up-fail-layer': 'current',
             'up-fail-target': self.up_fail_target,
         }
