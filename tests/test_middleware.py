@@ -40,7 +40,7 @@ class UnpolyMiddlewareTestCase(SimpleTestCase):
         middleware = UnpolyMiddleware(get_response)
         request = self.factory.get('/')
         response = middleware(request)
-        headers = {v[0]: v[1] for v in response._headers.values()}
+        headers = response.headers
 
         self.assertEqual(headers.get('X-Up-Location'), '/')
         self.assertEqual(headers.get('X-Up-Method'), 'GET')

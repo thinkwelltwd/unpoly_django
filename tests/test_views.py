@@ -58,7 +58,7 @@ class UnpolyFormViewMixinTest(SimpleTestCase):
         context = view.get_context_data(**{})
         self.assertEqual(context['up_target'], settings.MAIN_UP_TARGET)
 
-        not_main_target = '#not_the_main'
+        not_main_target = 'body'
 
         class UnpolyView(UnpolyFormViewMixin, TemplateView):
             template_name = 'any_template.html'
@@ -79,8 +79,17 @@ class UnpolyCrispyFormVanillaViewMixinTest(SimpleTestCase):
         class UnpolyView(UnpolyCrispyFormViewMixin, VanillaCreateView):
             template_name = 'any_template.html'
 
-        view = get_view(UnpolyView)
-        self.assertEqual(view.get_form_kwargs(), {})
+        form_kwargs = {
+            'form_action': '/up',
+            'multi_layer': None,
+            'up_fail_layer': 'current',
+            'up_fail_target': '#main_fail_target',
+            'up_layer': 'root',
+            'up_target': '#main_up_target',
+        }
+
+        view = get_view(UnpolyView, HTTP_X_UP_VERSION='2.5.1')
+        self.assertEqual(view.get_form_kwargs(), form_kwargs)
 
     def test_unpoly_view_form_attrs(self):
         """
@@ -94,11 +103,11 @@ class UnpolyCrispyFormVanillaViewMixinTest(SimpleTestCase):
         form_attrs = view.get_form_kwargs()
 
         self.assertEqual(form_attrs['form_action'], url_action)
-        self.assertEqual(form_attrs['up_target'], settings.MAIN_UP_TARGET)
+        self.assertEqual(form_attrs['up_target'], settings.MAIN_UP_TARGET_FORM_VIEW)
         self.assertEqual(form_attrs['up_fail_target'], settings.MAIN_UP_FAIL_TARGET)
 
         context = view.get_context_data()
-        self.assertEqual(context['up_target'], settings.MAIN_UP_TARGET)
+        self.assertEqual(context['up_target'], settings.MAIN_UP_TARGET_FORM_VIEW)
         self.assertEqual(context['up_fail_target'], settings.MAIN_UP_FAIL_TARGET)
 
 
@@ -119,9 +128,9 @@ class UnpolyCrispyFormDjangoViewMixinTest(SimpleTestCase):
         form_attrs = view.get_form_kwargs()
 
         self.assertEqual(form_attrs['form_action'], url_action)
-        self.assertEqual(form_attrs['up_target'], settings.MAIN_UP_TARGET)
+        self.assertEqual(form_attrs['up_target'], settings.MAIN_UP_TARGET_FORM_VIEW)
         self.assertEqual(form_attrs['up_fail_target'], settings.MAIN_UP_FAIL_TARGET)
 
         context = view.get_context_data()
-        self.assertEqual(context['up_target'], settings.MAIN_UP_TARGET)
+        self.assertEqual(context['up_target'], settings.MAIN_UP_TARGET_FORM_VIEW)
         self.assertEqual(context['up_fail_target'], settings.MAIN_UP_FAIL_TARGET)

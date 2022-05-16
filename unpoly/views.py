@@ -11,7 +11,6 @@ from django.http import (
 )
 from django.shortcuts import reverse
 from django.template.response import TemplateResponse
-from django.utils.translation import gettext_lazy as __
 
 from .unpoly import Unpoly
 
@@ -54,6 +53,14 @@ class UnpolyViewMixin:
     def up_mode(self) -> str:
         """Override on subclasses to handle fail modes."""
         return self.up.mode()
+
+    def get_unpoly_layer(self) -> str:
+        """Override on subclasses to customize logic."""
+        return self.up.layer()
+
+    def get_unpoly_fail_layer(self):
+        """Override on subclasses to customize logic."""
+        return self.up.fail_layer()
 
     def get_template_names(self) -> List[str]:
         """Return Unpoly template name for the specified layer."""
@@ -135,8 +142,6 @@ class UnpolyFormViewMixin(UnpolyViewMixin):
     Enables setting Unpoly target on forms and returning
     optimized responses.
     """
-    _unpoly_fail_target: str = settings.MAIN_UP_FAIL_TARGET
-    _unpoly_main_target: str = settings.MAIN_UP_TARGET
     _send_optimized_success_response: bool = False
 
     enable_messages_framework: bool = True
@@ -187,8 +192,8 @@ class UnpolyFormViewMixin(UnpolyViewMixin):
 
     def send_accept_layer(self, form, select_field_id) -> HttpResponse:
         """
-        When Unpoly has opened multiple overlays and the form is saved successfully,
-        the send the JSON details to enable updating the Select Field on the parent layer.
+        When Unpoly has opened multiple overlays and the form is saved successfully, then
+        send the JSON details to enable updating the Select Field on the parent layer.
         """
         self.object = form.save()
         resp = HttpResponse(b'', status=200)
@@ -277,14 +282,10 @@ class UnpolyFormViewMixin(UnpolyViewMixin):
 
         So at least return something more useful than a 500.
         """
-        if not self.up.is_unpoly():
-            return HttpResponseRedirect(reverse(settings.DEFAULT_ERROR_VIEW))
-
-        if self.up.fail_target():
+        if self.up.is_unpoly():
             return TemplateResponse(self.request, settings.DEFAULT_UP_ERROR_TEMPLATE, status=409)
 
-        msg = __('A database record error occurred!')
-        return HttpResponse(content=msg.encode('utf8'), status=409)
+        return HttpResponseRedirect(reverse(settings.DEFAULT_ERROR_VIEW))
 
     def get_unpoly_target(self) -> str:
         """Sets Unpoly target in template context
@@ -294,9 +295,7 @@ class UnpolyFormViewMixin(UnpolyViewMixin):
 
         Override on subclasses to customize logic for determining target.
         """
-        if self.up.is_validating():
-            return self.up.target() or self._unpoly_main_target
-        return self._unpoly_main_target
+        return self.up.target()
 
     def get_unpoly_fail_target(self) -> str:
         """Sets Unpoly fail target in template context
@@ -306,11 +305,11 @@ class UnpolyFormViewMixin(UnpolyViewMixin):
 
         Override on subclasses to customize logic for determining fail target.
         """
-        return self._unpoly_fail_target
+        return self.up.fail_target()
 
     def get_context_data(self, **kwargs) -> dict:
         """
-        Add Unpoly target to context so it can be used in templates.
+        Add Unpoly target to context, so it can be used in templates.
         """
         return super().get_context_data(
             up_target=self.get_unpoly_target(),
@@ -341,6 +340,12 @@ class UnpolyCrispyFormViewMixin(UnpolyFormViewMixin):
         superclass.__init__(*args, **kwargs)
         self.is_vanilla_view = not hasattr(superclass, 'get_form_kwargs')
 
+    def get_unpoly_target(self) -> str:
+        try:
+            return settings.MAIN_UP_TARGET_FORM_VIEW
+        except AttributeError:
+            return super().get_unpoly_target()
+
     def get_form_kwargs(self) -> dict:
         """Return the Unpoly form data attributes that should be included on the Crispy form tag.
 
@@ -350,6 +355,8 @@ class UnpolyCrispyFormViewMixin(UnpolyFormViewMixin):
             return {}
 
         up_kwargs = {
+            'up_layer': self.get_unpoly_layer(),
+            'up_fail_layer': self.get_unpoly_fail_layer(),
             'up_target': self.get_unpoly_target(),
             'up_fail_target': self.get_unpoly_fail_target(),
             'multi_layer': self.up.multi_layer(),

@@ -1,5 +1,6 @@
 from ast import literal_eval
 import json
+from django.conf import settings
 from django.http import HttpResponse
 
 
@@ -20,7 +21,7 @@ class Unpoly:
     def is_unpoly(self) -> bool:
         """Request is triggered by Unpoly
         """
-        return 'HTTP_X_UP_VERSION' in self.meta or bool(self.target()) or self.validate()
+        return 'HTTP_X_UP_VERSION' in self.meta or self.is_validating()
 
     def mode(self) -> str:
         """Unpoly allows you to stack multiple pages on top of each other.
@@ -30,12 +31,22 @@ class Unpoly:
         The initial page is called the root layer.
         An overlay is any layer that is not the root layer.
         """
-        return self.meta.get('HTTP_X_UP_MODE', 'root')
+        return self.meta.get('HTTP_X_UP_MODE', settings.MAIN_UP_LAYER)
 
     def fail_mode(self) -> str:
         """Return layer mode requested by Unpoly when a request failure occurs.
         """
-        return self.meta.get('HTTP_X_UP_FAIL_MODE', 'root')
+        return self.meta.get('HTTP_X_UP_FAIL_MODE', settings.MAIN_UP_FAIL_LAYER)
+
+    def layer(self) -> str:
+        """Return layer mode requested by Unpoly when a request succeeds.
+        """
+        return self.meta.get('HTTP_X_UP_LAYER', settings.MAIN_UP_LAYER)
+
+    def fail_layer(self) -> str:
+        """Return layer mode requested by Unpoly when a request fails.
+        """
+        return self.meta.get('HTTP_X_UP_FAIL_LAYER', settings.MAIN_UP_FAIL_LAYER)
 
     def multi_layer(self) -> bool:
         """Check query params for key indicating that this layer is multiple overlay.
@@ -56,7 +67,7 @@ class Unpoly:
 
     def fail_target(self) -> str:
         """Returns the CSS selector for a fragment that Unpoly will update in
-        case of an failed response. Server errors or validation failures are
+        case of a failed response. Server errors or validation failures are
         all examples for a failed response (non-200 status code).
 
         The Unpoly frontend will expect an HTML response containing an element
@@ -65,7 +76,7 @@ class Unpoly:
         Server-side code is free to optimize its response by only returning HTML
         that matches this selector.
         """
-        return self.meta.get('HTTP_X_UP_FAIL_TARGET', '')
+        return self.meta.get('HTTP_X_UP_FAIL_TARGET') or settings.MAIN_UP_FAIL_TARGET
 
     def target(self) -> str:
         """Returns the CSS selector for a fragment that Unpoly will update in
@@ -77,7 +88,7 @@ class Unpoly:
         Server-side code is free to optimize its successful response by only returning HTML
         that matches this selector.
         """
-        return self.meta.get('HTTP_X_UP_TARGET', '')
+        return self.meta.get('HTTP_X_UP_TARGET') or settings.MAIN_UP_TARGET
 
     def is_validating(self) -> bool:
         """Returns whether the current form submission should be
@@ -146,7 +157,7 @@ class Unpoly:
 
         Not part of the official Unpoly Server Protocol, but can be useful to as a
         way to signal to the server the exact template that should be rendered and
-        returned in the response.
+        returned as the response.
         """
         return self.meta.get('HTTP_X_TEMPLATE_NAME', '')
 

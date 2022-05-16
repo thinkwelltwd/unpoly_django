@@ -1,6 +1,9 @@
 import os
 
-MAIN_UP_TARGET = '#main_up_target'
+MAIN_UP_LAYER = 'root'
+MAIN_UP_FAIL_LAYER = 'current'
+MAIN_UP_TARGET = 'body'
+MAIN_UP_TARGET_FORM_VIEW = '#main_up_target'
 MAIN_UP_FAIL_TARGET = '#main_fail_target'
 
 DEFAULT_UP_ERROR_TEMPLATE = 'unpoly_modal_error.html'
