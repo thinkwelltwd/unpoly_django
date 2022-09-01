@@ -43,6 +43,7 @@ class UnpolyViewMixin:
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._up: Optional[Unpoly] = None
+        self._record_event_data = {}
 
     @property
     def up(self) -> Unpoly:
@@ -96,24 +97,27 @@ class UnpolyViewMixin:
 
         Override on subclasses to customize.
         """
-        try:
-            record_id = self.object.id
-        except AttributeError:
-            return kwargs
+        if not self._record_event_data:
+            try:
+                record_id = self.object.id
+            except AttributeError:
+                self._record_event_data = kwargs
+                return kwargs
 
-        try:
-            model_name = self.object.model_name()
-        except AttributeError:
-            model_name = self.object.__class__.__name__.lower()
+            try:
+                model_name = self.object.model_name()
+            except AttributeError:
+                model_name = self.object.__class__.__name__.lower()
 
-        data = {
-            'id': record_id,
-            'action': self.action,
-            'model_name': model_name,
-        }
-        data.update(kwargs)
+            self._record_event_data = {
+                'id': record_id,
+                'action': self.action,
+                'model_name': model_name,
+            }
 
-        return data
+        self._record_event_data.update(kwargs)
+
+        return self._record_event_data
 
     def optimized_response(self) -> TemplateResponse:
         """Return optimized HTML response containing the target(s) Unpoly requests.
