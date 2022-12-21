@@ -172,7 +172,7 @@ class UnpolyFormViewMixin(UnpolyViewMixin):
 
         msg = self.get_success_message(form.cleaned_data)
         if msg:
-            messages.info(self.request, msg)
+            messages.success(self.request, msg, extra_tags='safe')
 
         if self.send_optimized_success_response():
             response = self.optimized_success_response()
