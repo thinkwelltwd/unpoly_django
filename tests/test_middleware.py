@@ -35,12 +35,11 @@ class UnpolyMiddlewareTestCase(SimpleTestCase):
 
     def test_check_response_headers(self):
         """
-        Response should set X-Up-Location and X-Up-Method headers
+        Response should set X-Up-Method headers
         """
         middleware = UnpolyMiddleware(get_response)
         request = self.factory.get('/')
         response = middleware(request)
         headers = response.headers
 
-        self.assertEqual(headers.get('X-Up-Location'), '/')
         self.assertEqual(headers.get('X-Up-Method'), 'GET')

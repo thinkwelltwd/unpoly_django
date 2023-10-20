@@ -38,7 +38,6 @@ class UnpolyMiddleware(MiddlewareMixin):
         so Unpoly can detect method & location.
         """
         method = request.method
-        response['X-Up-Location'] = request.get_full_path()
         response['X-Up-Method'] = method
 
         if method != 'GET':
